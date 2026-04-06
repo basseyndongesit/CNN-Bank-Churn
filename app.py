@@ -101,9 +101,7 @@ st.sidebar.header("Enter Customer Details")
 def user_input():
     data = {}
 
-    for col in df.columns:
-        if col == "Attrition_Flag":
-            continue
+    for col in df.drop("Attrition_Flag", axis=1).columns:
 
         if col in label_encoders:
             options = label_encoders[col].classes_
@@ -120,10 +118,26 @@ input_df = user_input()
 def preprocess_input(input_df):
     df_copy = input_df.copy()
 
-    for col in label_encoders:
-        df_copy[col] = label_encoders[col].transform(df_copy[col])
+    # Ensure ALL columns match training data
+    required_cols = df.drop("Attrition_Flag", axis=1).columns
 
+    # Add missing columns
+    for col in required_cols:
+        if col not in df_copy.columns:
+            df_copy[col] = df[col].mode()[0]  # default value
+
+    # Reorder columns
+    df_copy = df_copy[required_cols]
+
+    # Apply encoding safely
+    for col in label_encoders:
+        if col in df_copy.columns:
+            df_copy[col] = label_encoders[col].transform(df_copy[col])
+
+    # Scale
     df_scaled = scaler.transform(df_copy)
+
+    # Convert to tensor
     tensor = torch.tensor(df_scaled, dtype=torch.float32).unsqueeze(1)
 
     return tensor
@@ -166,4 +180,6 @@ if st.button("🔍 Predict Churn"):
 # FOOTER
 
 st.markdown("---")
+st.write("Input columns:", input_df.columns)
+st.write("Expected columns:", df.drop("Attrition_Flag", axis=1).columns)
 st.write("Built with Streamlit | CNN Model for Customer Churn Prediction")
