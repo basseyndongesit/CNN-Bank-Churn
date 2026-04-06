@@ -16,7 +16,7 @@ st.write("Predict whether a customer is likely to churn using a trained CNN mode
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("Bank Churners.csv")
+    df = pd.read_csv("Bank Chunners.csv")
     df = df.iloc[:, :-2]
     df.drop("CLIENTNUM", axis=1, inplace=True)
     df.replace("Unknown", np.nan, inplace=True)
